@@ -33,19 +33,25 @@ pipeline {
 
         stage('Create Namespace') {
             steps {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                 sh "kubectl create namespace ${namespace} || true"
+                }
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                 sh "kubectl apply -n ${namespace} -f kubernetes"
+                }
             }
         }
 
         stage('Wait for Deployment') {
             steps {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                 sh "kubectl wait --for=condition=available deployment/${service_name} -n ${namespace} --timeout=180s"
+                }
             }
         }
     }
