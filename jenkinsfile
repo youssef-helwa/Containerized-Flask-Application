@@ -1,0 +1,65 @@
+pipeline {
+    agent any
+    
+    environment {
+        cluster_name = "eks"
+        region = "eu-west-1" 
+        aws_id = "277707120669"
+        repo_name = "python-img"  
+        image_name = "${aws_id}.dkr.ecr.${region}.amazonaws.com/${repo_name}:latest"
+        service_name = "micro-svr"
+        namespace = "python-app"
+    }
+
+    stages {
+        stage('Checkout Config Files') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build and Push to ECR') {
+            steps {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh "docker rmi -f ${image_name} || true"
+                    sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${aws_id}.dkr.ecr.${region}.amazonaws.com" 
+                    sh "docker build -t ${aws_id}.dkr.ecr.${region}.amazonaws.com/${repo_name}:latest ."
+                    sh "docker push ${aws_id}.dkr.ecr.${region}.amazonaws.com/${repo_name}:latest"
+                }
+            }
+        }
+
+        stage('Update Kubeconfig') {
+            steps {
+                sh "aws eks update-kubeconfig --name ${cluster_name} --region ${region}"
+            }
+        }
+
+        stage('Create Namespace') {
+            steps {
+                sh "kubectl create namespace ${namespace} || true"
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh "kubectl apply -n ${namespace} -f kubernetes"
+            }
+        }
+
+        stage('Wait for Deployment') {
+            steps {
+                sh "kubectl wait --for=condition=available deployment/${service_name} -n ${namespace} --timeout=180s"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline executed successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Please check the logs."
+        }
+    }
+}
