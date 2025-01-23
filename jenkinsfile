@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Build and Push to ECR') {
             steps {
-                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+               withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh "docker rmi -f ${image_name} || true"
                     sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${aws_id}.dkr.ecr.${region}.amazonaws.com" 
                     sh "docker build -t ${aws_id}.dkr.ecr.${region}.amazonaws.com/${repo_name}:latest ."
