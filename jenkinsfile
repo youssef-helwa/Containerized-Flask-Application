@@ -42,8 +42,17 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                sh "kubectl delete -n ${namespace} -f kubernetes"
-                sh "kubectl apply -n ${namespace} -f kubernetes"
+                script {
+                    // Deploy Kubernetes manifests only if the directory exists
+                    sh '''
+                    if [ -d "kubernetes" ]; then
+                        kubectl apply -n python-app -f kubernetes
+                    else
+                        echo "Error: Kubernetes directory not found."
+                        exit 1
+                    fi
+                    '''
+                    }
                 }
             }
         }
