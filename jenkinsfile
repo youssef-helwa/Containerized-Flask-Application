@@ -60,7 +60,7 @@ pipeline {
         stage('Wait for Deployment') {
             steps {
                 withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                sh "kubectl wait --for=condition=available deployment/${service_name} -n ${namespace} --timeout=180s"
+                sh "kubectl wait --for=condition=available deployment/micro-deploy -n ${namespace} --timeout=180s"
                 }
             }
         }
