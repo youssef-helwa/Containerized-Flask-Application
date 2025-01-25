@@ -45,12 +45,8 @@ pipeline {
                 script {
                     // Deploy Kubernets manifests only if the directory exists
                     sh '''
-                    if [ -d "kubernets" ]; then
-                        kubectl apply -n python-app -f kubernets
-                    else
-                        echo "Error: Kubernets directory not found."
-                        exit 1
-                    fi
+                     kubectl delete -n ${namespace} -f kubernets
+                    kubectl apply -n ${namespace} -f kubernets
                     '''
                     }
                 }
