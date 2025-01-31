@@ -78,7 +78,7 @@ Once the pipeline is configured, trigger a build to automate deployment.
 
 ## Outputs
 - EKS Cluster Name: `${eks_cluster_name}`
-- Load Balancer URL: Retrieved from `kubectl get svc -n python-app`
+- Load Balancer URL: Retrieved from `kubectl get svc -n $namespace`
 - Jenkins EC2 Public IP: `${ec2}`
 
 ## Cleanup
